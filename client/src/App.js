@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Customer from './Components/Customer';
 import Paper from '@material-ui/core/Paper';
 import Table from '@material-ui/core/Table'
@@ -8,45 +8,35 @@ import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
 import { withStyles } from '@material-ui/core/styles';
 
-const styles = theme => ({  
-  root: {    
-    width: "100%",    
-    overflowX: "auto"  
-  },  
-  table: {    
-    minWidth: 1080  
+const styles = theme => ({
+  root: {
+    width: "100%",
+    overflowX: "auto"
+  },
+  table: {
+    minWidth: 1080
   }
 });
 
-const customers = [
-  {
-    'id': '1',
-    'image': 'https://placeimg.com/64/64/1',
-    'name': '배켜니',
-    'birthday': '961122',
-    'gender': '남자',
-    'job': '대학생'
-  },
-  {
-    'id': '2',
-    'image': 'https://placeimg.com/64/64/2',
-    'name': '소희',
-    'birthday': '961122',
-    'gender': '남자',
-    'job': '대학생'
-  },
-  {
-    'id': '3',
-    'image': 'https://placeimg.com/64/64/3',
-    'name': '은석이',
-    'birthday': '961122',
-    'gender': '남자',
-    'job': '대학생'
-  }
-]
-
 function App(props) {
+  const [customers, setCustomers] = useState([]);
+
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const response = await fetch('/api/customers');
+        const data = await response.json();
+        setCustomers(data);
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+      }
+    };
+
+    fetchCustomers();
+  }, []);
+
   const { classes } = props;
+
   return (
     <Paper className={classes.root}>
       <Table className={classes.table}>
@@ -60,11 +50,19 @@ function App(props) {
             <TableCell>직업</TableCell>
           </TableRow>
         </TableHead>
-        <TableBody>            
-          {customers.map(c => (              
-            <Customer key={c.id} id={c.id} image={c.image} name={c.name} birthday={c.birthday} gender={c.gender} job={c.job} />
-          ))}          
-        </TableBody>          
+        <TableBody>
+          {customers.map(customer => (
+            <Customer
+              key={customer.id}
+              id={customer.id}
+              image={customer.image}
+              name={customer.name}
+              birthday={customer.birthday}
+              gender={customer.gender}
+              job={customer.job}
+            />
+          ))}
+        </TableBody>
       </Table>
     </Paper>
   );
