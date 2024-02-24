@@ -1,4 +1,5 @@
 import { Component } from 'react';
+import CustomerAdd from './Components/CustomerAdd';
 import Customer from '/Users/solmee/Desktop/react/management-example/client/src/Components/Customer.js';
 import Paper from '@material-ui/core/Paper';
 import Table from '@material-ui/core/Table';
@@ -47,11 +48,28 @@ const styles=theme=>({
 //props는 변경될 수 없는 데이터를 명시할때 사용 & state 는 변경될 수 있는 데이터를 명시할 때 사용한다. 
 class App extends Component{
 
-  state={
-    customers : "",
-    //프로그래스바
-    completed : 0 //퍼센트를 알려주는것
+  constructor(props){
+    super(props);
+    this.state = {
+      customers: '',
+      completed: 0
+    }
   }
+
+  stateRefresh = () => {
+    this.setState({
+      customers: '',
+      completed: 0
+    });
+    this.callApi()
+      .then(res => this.setState({customers: res}))
+      .catch(err => console.log(err));
+  }
+  // state={
+  //   customers : "",
+  //   //프로그래스바
+  //   completed : 0 //퍼센트를 알려주는것
+  // }
 
   //실제 api 서버에 접근하도록 하기 (componentDidMount : 데이터 받아오는 작업)
   componentDidMount(){
@@ -84,32 +102,35 @@ class App extends Component{
   render(){
     const {classes} =this.props;
     return(
-        <Paper className={classes.root}> 
-            <Table className={classes.table}> 
-              <TableHead>
-                <TableRow>
-                  <TableCell>번호</TableCell>
-                  <TableCell>이미지</TableCell>
-                  <TableCell>이름</TableCell>
-                  <TableCell>생년월일</TableCell>
-                  <TableCell>성별</TableCell>
-                  <TableCell>직업</TableCell>
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                  {this.state.customers ? this.state.customers.map(c=>{ 
-                    return (<Customer key={c.id} id={c.id} image={c.image} name={c.name} birthday={c.birthday} gender={c.gender} job={c.job} />); 
-                  }) : 
+      <div>
+          <Paper className={classes.root}> 
+              <Table className={classes.table}> 
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan="6" align="center">
-                      <CircularProgress className={classes.progress} variant="indeterminate" value={this.state.completed}/>
-                    </TableCell>
+                    <TableCell>번호</TableCell>
+                    <TableCell>이미지</TableCell>
+                    <TableCell>이름</TableCell>
+                    <TableCell>생년월일</TableCell>
+                    <TableCell>성별</TableCell>
+                    <TableCell>직업</TableCell>
                   </TableRow>
-                  }
-              </TableBody>
-            </Table>
-        </Paper>
+                </TableHead>
+
+                <TableBody>
+                    {this.state.customers ? this.state.customers.map(c=>{ 
+                      return (<Customer key={c.id} id={c.id} image={c.image} name={c.name} birthday={c.birthday} gender={c.gender} job={c.job} />); 
+                    }) : 
+                    <TableRow>
+                      <TableCell colSpan="6" align="center">
+                        <CircularProgress className={classes.progress} variant="indeterminate" value={this.state.completed}/>
+                      </TableCell>
+                    </TableRow>
+                    }
+                </TableBody>
+              </Table>
+          </Paper>
+          <CustomerAdd stateRefresh={this.stateRefresh}/>
+        </div>
 
     );
   }
