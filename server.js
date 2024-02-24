@@ -35,7 +35,7 @@ app.use(cors());
 
 app.get('/api/customers', (req, res) => {
     connection.query(
-        "SELECT * FROM CUSTOMER", // 데이터 가져오는 쿼리문
+        "SELECT * FROM CUSTOMER WHERE idDeleted = 0", // 데이터 가져오는 쿼리문 -> 삭제되지 않은 데이터만 가져오는걸로 바꿈
         (err, rows, fields) => {
             if (err) {
                 console.error('Error querying database:', err);
@@ -50,7 +50,7 @@ app.get('/api/customers', (req, res) => {
 app.use('/image', express.static('./upload'));
 
 app.post('/api/customers', upload.single('image'), (req, res) => {
-    let sql = 'INSERT INTO CUSTOMER VALUES (null, ?,?,?,?,?)';
+    let sql = 'INSERT INTO CUSTOMER VALUES (null, ?,?,?,?,?, now() ,0)';
     let image = '/image/' + req.file.filename;
     //let image = 'http://localhost:4200/image' + req.file.filename;
     let name = req.body.name;
@@ -62,5 +62,15 @@ app.post('/api/customers', upload.single('image'), (req, res) => {
         res.send(rows);
     })
 })
+
+app.delete('/api/customers/:id', (req, res) => {
+    let sql = 'UPDATE CUSTOMER SET idDeleted = 1 WHERE id = ?';
+    let params = [req.params.id];
+    connection.query(sql, params,
+        (err, rows, fields) => {
+            res.send(rows);
+        }
+    )
+});
 
 app.listen(port, () => console.log(`Listening on port ${port}`));
