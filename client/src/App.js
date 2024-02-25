@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { Component } from 'react';
 import CustomerAdd from './Components/CustomerAdd';
 import Customer from '/Users/solmee/Desktop/react/management-example/client/src/Components/Customer.js';
@@ -14,21 +15,92 @@ import CircularProgress from  '@material-ui/core/CircularProgress';
 //cs적용하기
 import {ThemeProvider, withStyles} from '@material-ui/core/styles';
 
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
+import InputBase from '@material-ui/core/InputBase';
+import { alpha } from '@material-ui/core/styles';
+import MenuIcon from '@material-ui/icons/Menu';
+import SearchIcon from '@material-ui/icons/Search';
+
 const styles=theme=>({
   root:{
     width:"100%",
-    //marginTop:ThemeProvider.spacing.unit*3,
-    overflowX:"auto"
-  },
-  table:{//이후 가로스크롤바가 생김
-    minWidth:1080
+    minWidth: 1080
   },
   //프로그래스바
   progress: {
     marginTop:"20%",
+  },
+  menu: {
+    marginTop: 15,
+    marginBottom: 15,
+    display: 'flex',
+    justifyContent: 'center'
+  },
+  paper: {
+    marginLeft: 18,
+    marginRight: 18
+  },
+  grow: {
+    flexGrow: 1,
+  },
+  tableHead: {
+    fontSize: '1.0rem'
+  },
+  menuButton: {
+    marginLeft: -12,
+    marginRight: 20,
+  },
+  title: {
+    display: 'none',
+    [theme.breakpoints.up('sm')]: {
+      display: 'block',
+    },
+  },
+  search: {
+    position: 'relative',
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: alpha(theme.palette.common.white, 0.15),
+    '&:hover': {
+      backgroundColor: alpha(theme.palette.common.white, 0.25),
+    },
+    marginLeft: 0,
+    width: '100%',
+    [theme.breakpoints.up('sm')]: {
+      marginLeft: theme.spacing(2),
+      width: 'auto',
+    },
+  },
+  searchIcon: {
+    width: theme.spacing(9),
+    height: '100%',
+    position: 'absolute',
+    pointerEvents: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inputRoot: {
+    color: 'inherit',
+    width: '100%',
+  },
+  inputInput: {
+    paddingTop: theme.spacing(3),
+    paddingRight: theme.spacing(2),
+    paddingBottom: theme.spacing(2),
+    paddingLeft: theme.spacing(10),
+    transition: theme.transitions.create('width'),
+    width: '100%',
+    [theme.breakpoints.up('sm')]: {
+      width: 120,
+      '&:focus': {
+        width: 200,
+      },
+    },
   }
 });
-
 
 
 
@@ -52,14 +124,16 @@ class App extends Component{
     super(props);
     this.state = {
       customers: '',
-      completed: 0
+      completed: 0,
+      searchKeyword:''
     }
   }
 
   stateRefresh = () => {
     this.setState({
       customers: '',
-      completed: 0
+      completed: 0,
+      searchKeyword:''
     });
     this.callApi()
       .then(res => this.setState({customers: res}))
@@ -97,30 +171,70 @@ class App extends Component{
     this.setState({completed:completed >=100 ? 0 : completed +1});
   }
 
-
+  handleValueChange = (e) => {
+    let nextState = {};
+    nextState[e.target.name] = e.target.value;
+    this.setState(nextState);
+  }
 
   render(){
+    const filteredComponents = (data) => {
+      data = data.filter((c) => {
+        return c.name.indexOf(this.state.searchKeyword) > -1;
+      })
+      return data.map((c) => {
+        return <Customer stateRefresh={this.stateRefresh} key={c.id} id={c.id} image={c.image} name={c.name} birthday={c.birthday} gender={c.gender} job={c.job} /> 
+      });
+    }
     const {classes} =this.props;
+    const cellList = ["번호", "프로필 이미지", "이름", "생년월일", "성별", "직업", "설정"];
     return(
-      <div>
-          <Paper className={classes.root}> 
+      <div className={classes.root}>
+         <AppBar position="static">
+          <Toolbar>
+            <IconButton className={classes.menuButton} color="inherit" aria-label="Open drawer">
+              <MenuIcon />
+            </IconButton>
+            <Typography className={classes.title} variant="h6" color="inherit" noWrap>
+              고객 관리 시스템
+            </Typography>
+            <div className={classes.grow} />
+            <div className={classes.search}>
+              <div className={classes.searchIcon}>
+                <SearchIcon />
+              </div>
+              <InputBase
+                placeholder="검색하기"
+                classes={{
+                  root: classes.inputRoot,
+                  input: classes.inputInput,
+                }}
+                name="searchKeyword"
+                value={this.state.searchKeyword}
+                onChange={this.handleValueChange}
+              />
+            </div>
+          </Toolbar>
+        </AppBar>
+        <div className={classes.menu}>
+          <CustomerAdd stateRefresh={this.stateRefresh}/>
+        </div>
+            <Paper className={classes.paper}> 
               <Table className={classes.table}> 
                 <TableHead>
                   <TableRow>
-                    <TableCell>번호</TableCell>
-                    <TableCell>이미지</TableCell>
-                    <TableCell>이름</TableCell>
-                    <TableCell>생년월일</TableCell>
-                    <TableCell>성별</TableCell>
-                    <TableCell>직업</TableCell>
-                    <TableCell>설정</TableCell>
+                    {/* {cellList.map( c =>{
+                        return <TableCell className={classes.tableHead}> {c} </TableCell>
+                    })} */}
+                    {cellList.map((c, index) => ( // index를 이용하여 고유한 key 제공
+                      <TableCell key={index} className={classes.tableHead}>{c}</TableCell>
+                    ))}
                   </TableRow>
                 </TableHead>
 
                 <TableBody>
-                    {this.state.customers ? this.state.customers.map(c=>{ 
-                      return (<Customer stateRefresh={this.stateRefresh} key={c.id} id={c.id} image={c.image} name={c.name} birthday={c.birthday} gender={c.gender} job={c.job} />); 
-                    }) : 
+                    {this.state.customers ? 
+                      filteredComponents(this.state.customers) :
                     <TableRow>
                       <TableCell colSpan="6" align="center">
                         <CircularProgress className={classes.progress} variant="indeterminate" value={this.state.completed}/>
@@ -130,7 +244,6 @@ class App extends Component{
                 </TableBody>
               </Table>
           </Paper>
-          <CustomerAdd stateRefresh={this.stateRefresh}/>
         </div>
 
     );
